@@ -13,57 +13,30 @@ st.set_page_config(page_title="📞 Scrappy Dialer", layout="wide")
 st.title("📞 Scrappy Dialer")
 
 # --- session state ---
+if "queue" not in st.session_state:
+    st.session_state["queue"] = None
+if "active_tab" not in st.session_state:
+    st.session_state["active_tab"] = "builder"
 if "campaigns" not in st.session_state:
     st.session_state["campaigns"] = []
+if "viewing_campaign" not in st.session_state:
+    st.session_state["viewing_campaign"] = None
+if "view_mode" not in st.session_state:
+    st.session_state["view_mode"] = None  # "scheduled_detail" | "launched_detail"
+if "dispositions" not in st.session_state:
+    st.session_state["dispositions"] = [
+        {"name": "Qualified", "tags": ["interested", "warm lead"], "action": "Send to CRM"},
+        {"name": "Not Interested", "tags": ["do not call"], "action": "Mark DNC"},
+        {"name": "Hang Up", "tags": ["dropped"], "action": "Log Only"},
+        {"name": "Callback", "tags": ["retry", "call later"], "action": "Add to Retry Queue"}
+    ]
+if "classification_prompt" not in st.session_state:
+    st.session_state["classification_prompt"] = (
+        "Classify call outcomes based on transcript. "
+        "Use dispositions: Qualified, Not Interested, Hang Up, Callback."
+    )
 
-# =========================
-#      CAMPAIGN BUILDER
-# =========================
-st.subheader("🛠 Campaign Builder (Simulation)")
+days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
-# Simulate campaign creation
-if st.button("➕ Simulate Campaign Creation"):
-    campaign_id = len(st.session_state["campaigns"]) + 1
-    fake_campaign = {
-        "id": campaign_id,
-        "name": f"Test Campaign {campaign_id}",
-        "status": "Scheduled",
-        "leads": 10,
-        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    }
-    st.session_state["campaigns"].append(fake_campaign)
-    st.success(f"Campaign {campaign_id} created and scheduled ✅")
-
-# Simulate campaign launch
-if st.button("🚀 Simulate Campaign Launch"):
-    if st.session_state["campaigns"]:
-        st.session_state["campaigns"][-1]["status"] = "Running"
-        st.info(f"Campaign {st.session_state['campaigns'][-1]['id']} is now running…")
-    else:
-        st.warning("No campaigns available to launch.")
-
-# Simulate calls
-if st.button("📞 Simulate Calls"):
-    if st.session_state["campaigns"]:
-        current = st.session_state["campaigns"][-1]
-        if current["status"] == "Running":
-            results = []
-            for i in range(current["leads"]):
-                result = ["Answered ✅", "No Answer ❌", "Busy 🔁"][i % 3]
-                results.append(f"Lead {i+1}: {result}")
-            st.write("\n".join(results))
-            current["status"] = "Completed"
-            st.success(f"Campaign {current['id']} completed! ✅")
-        else:
-            st.warning("Please launch a campaign before simulating calls.")
-    else:
-        st.warning("No campaigns to simulate.")
-
-# =========================
-#   CAMPAIGN DASHBOARD
-# =========================
-st.subheader("📊 Campaign Dashboard")
-if st.session_state["campaigns"]:
-    st.table(pd.DataFrame(st.session_state["campaigns"]))
-else:
-    st.write("No campaigns created yet.")
+# --- tab ordering ---
+builder_tab, manager_tab, dispo_tab = st.tabs(["📋 Campaign Builder", "📊 Campaign Manager", "🎯 Disposition Manager"])
