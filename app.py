@@ -4,8 +4,9 @@ from datetime import datetime
 import pytz
 
 from validators import validate_leads, validate_dids
-from services.queue_builder import build_round_robin_queue
-from workers.fake_worker import run as run_fake_worker
+from queue_builder import build_round_robin_queue
+# from workers.fake_worker import run as run_fake_worker
+
 
 # --- page setup ---
 st.set_page_config(page_title="📞 Scrappy Dialer", layout="wide")
